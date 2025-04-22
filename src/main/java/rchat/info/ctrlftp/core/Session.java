@@ -1,8 +1,9 @@
 package rchat.info.ctrlftp.core;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import rchat.info.ctrlftp.core.responses.Response;
+import rchat.info.ctrlftp.core.responses.ResponseTypes;
+
+import java.io.*;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 
@@ -19,18 +20,32 @@ public class Session implements Runnable {
     /**
      * A method that finds required method,
      * injects dependencies, launches method and
-     * sending back response
+     * sends back response
+     *
      * @param command a raw command from a user
      */
-    private void processCommand(String command) {
-        // TODO: Allothis
+    private Response launchMethod(String command) {
         var optionalMethod = MethodResolver.findMethod(this.serverContext, command.split(" ")[0]);
         if (optionalMethod.isEmpty()) {
-
+            return new Response(ResponseTypes.NOT_IMPLEMENTED);
         }
+
         // 2. Find required dependencies and inject them
         // 3. Launch method
-        // 4. Send back response from method
+
+        return new Response(ResponseTypes.COMMAND_OK);
+    }
+
+    /**
+     * A method that gets result from method launching and sends it to a user
+     *
+     * @param command a raw command from a user
+     */
+    private void processCommand(String command) throws IOException {
+        Response response = launchMethod(command);
+
+        BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(client.getOutputStream()));
+        writer.write(response.serialize().toString());
     }
 
     /**
