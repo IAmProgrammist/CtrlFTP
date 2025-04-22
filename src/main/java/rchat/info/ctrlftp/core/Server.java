@@ -1,5 +1,8 @@
 package rchat.info.ctrlftp.core;
 
+import rchat.info.ctrlftp.core.dependencies.AbstractDependency;
+import rchat.info.ctrlftp.core.dependencies.DependencyManager;
+
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -13,12 +16,15 @@ import java.util.concurrent.Executors;
 public class Server {
     private ServerSocket serverSocket;
     private ExecutorService sessions;
-    private Set<Class<?>> services;
-    private Set<Class<?>> dependencies;
+    private DependencyManager dependencyManager;
+    private Set<Class<?>> serviceClasses;
+    private Set<Class<? extends AbstractDependency>> dependencyClasses;
 
     public Server() {
         sessions = Executors.newVirtualThreadPerTaskExecutor();
+        dependencyManager = new DependencyManager(this);
         loadServices();
+        loadDependencies();
     }
 
     public void mainLoop() throws IOException {
@@ -45,11 +51,11 @@ public class Server {
     private void loadDependencies() {
     }
 
-    public Set<Class<?>> getServices() {
-        return services;
+    public Set<Class<?>> getServiceClasses() {
+        return serviceClasses;
     }
 
-    public Set<Class<?>> getDependencies() {
-        return dependencies;
+    public Set<Class<? extends AbstractDependency>> getDependencyClasses() {
+        return dependencyClasses;
     }
 }

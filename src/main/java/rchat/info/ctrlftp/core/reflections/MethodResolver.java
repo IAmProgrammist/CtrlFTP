@@ -1,5 +1,6 @@
-package rchat.info.ctrlftp.core;
+package rchat.info.ctrlftp.core.reflections;
 
+import rchat.info.ctrlftp.core.Server;
 import rchat.info.ctrlftp.core.annotations.Command;
 
 import java.lang.reflect.Method;
@@ -17,7 +18,7 @@ public class MethodResolver {
      * @return method to be called
      */
     public static Optional<Method> findMethod(Server serverContext, String name) {
-        var services = serverContext.getServices();
+        var services = serverContext.getServiceClasses();
 
         for (var serviceClass : services) {
             for (var serviceMethod : serviceClass.getMethods()) {

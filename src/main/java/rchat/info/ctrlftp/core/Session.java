@@ -1,5 +1,6 @@
 package rchat.info.ctrlftp.core;
 
+import rchat.info.ctrlftp.core.reflections.MethodResolver;
 import rchat.info.ctrlftp.core.responses.Response;
 import rchat.info.ctrlftp.core.responses.ResponseTypes;
 
