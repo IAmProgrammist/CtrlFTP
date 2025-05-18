@@ -51,6 +51,10 @@ public class Server {
     private void loadDependencies() {
     }
 
+    public DependencyManager getDependencyManager() {
+        return dependencyManager;
+    }
+
     public Set<Class<?>> getServiceClasses() {
         return serviceClasses;
     }

@@ -1,10 +1,13 @@
 package rchat.info.ctrlftp.core;
 
+import rchat.info.ctrlftp.core.dependencies.DependencyLevel;
+import rchat.info.ctrlftp.core.dependencies.DependencyManager;
 import rchat.info.ctrlftp.core.reflections.MethodResolver;
 import rchat.info.ctrlftp.core.responses.Response;
 import rchat.info.ctrlftp.core.responses.ResponseTypes;
 
 import java.io.*;
+import java.lang.reflect.InvocationTargetException;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 
@@ -15,8 +18,13 @@ public class Session implements Runnable {
     private Server serverContext;
     private Socket client;
     private StringBuilder inputBuffer;
+    private DependencyManager dependencyManager;
 
-    public Session(Server serverContext, Socket client) { }
+    public Session(Server serverContext, Socket client) {
+        this.dependencyManager = new DependencyManager(serverContext,
+                DependencyLevel.SESSION,
+                serverContext.getDependencyManager());
+    }
 
     /**
      * A method that finds required method,
@@ -26,15 +34,20 @@ public class Session implements Runnable {
      * @param command a raw command from a user
      */
     private Response launchMethod(String command) {
-        var optionalMethod = MethodResolver.findMethod(this.serverContext, command.split(" ")[0]);
-        if (optionalMethod.isEmpty()) {
-            return new Response(ResponseTypes.NOT_IMPLEMENTED);
+        try {
+            var optionalMethod = MethodResolver.findMethod(this.serverContext, command.split(" ")[0]);
+            if (optionalMethod.isEmpty()) {
+                return new Response(ResponseTypes.NOT_IMPLEMENTED);
+            }
+
+            DependencyManager local = new DependencyManager(serverContext, command, this.dependencyManager);
+            var classToCall = optionalMethod.get().getDeclaringClass();
+            var injectedClass = local.inject(classToCall, 0);
+
+            return (Response) optionalMethod.get().invoke(injectedClass);
+        } catch (Exception e) {
+            return new Response(ResponseTypes.REQUESTED_ACTION_NOT_TAKEN);
         }
-
-        // 2. Find required dependencies and inject them
-        // 3. Launch method
-
-        return new Response(ResponseTypes.COMMAND_OK);
     }
 
     /**
