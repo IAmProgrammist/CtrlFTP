@@ -21,6 +21,9 @@ public class Session implements Runnable {
     private DependencyManager dependencyManager;
 
     public Session(Server serverContext, Socket client) {
+        this.serverContext = serverContext;
+        this.client = client;
+        this.inputBuffer = new StringBuilder();
         this.dependencyManager = new DependencyManager(serverContext,
                 DependencyLevel.SESSION,
                 serverContext.getDependencyManager());
@@ -37,14 +40,14 @@ public class Session implements Runnable {
         try {
             var optionalMethod = MethodResolver.findMethod(this.serverContext, command.split(" ")[0]);
             if (optionalMethod.isEmpty()) {
-                return new Response(ResponseTypes.NOT_IMPLEMENTED);
+                return new Response(ResponseTypes.NOT_IMPLEMENTED, "Method not implemented");
             }
+            var targetMethod = optionalMethod.get();
 
             DependencyManager local = new DependencyManager(serverContext, command, this.dependencyManager);
-            var classToCall = optionalMethod.get().getDeclaringClass();
-            var injectedClass = local.inject(classToCall, 0);
+            var methodParameters = local.getDependenciesForParameters(targetMethod.getParameters());
 
-            return (Response) optionalMethod.get().invoke(injectedClass);
+            return (Response) targetMethod.invoke(null, methodParameters.toArray());
         } catch (Exception e) {
             return new Response(ResponseTypes.REQUESTED_ACTION_NOT_TAKEN);
         }
@@ -56,10 +59,15 @@ public class Session implements Runnable {
      * @param command a raw command from a user
      */
     private void processCommand(String command) throws IOException {
-        Response response = launchMethod(command);
+        sendResponse(launchMethod(command));
+    }
 
+    private void sendResponse(Response response) throws IOException {
         BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(client.getOutputStream()));
         writer.write(response.serialize().toString());
+        writer.flush();
+
+        System.out.println(response.serialize().toString());
     }
 
     /**
@@ -68,6 +76,7 @@ public class Session implements Runnable {
     @Override
     public void run() {
         try {
+            sendResponse(new Response(ResponseTypes.COMMAND_OK, "Connected succesfully"));
             BufferedReader r = new BufferedReader(new InputStreamReader(client.getInputStream(), StandardCharsets.UTF_8));
             char[] buffer = new char[1024];
             int read;

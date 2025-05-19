@@ -4,9 +4,9 @@ import rchat.info.ctrlftp.core.Server;
 import rchat.info.ctrlftp.core.annotations.Dependency;
 
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Parameter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 public class DependencyManager {
     private final DependencyLevel level;
@@ -118,24 +118,25 @@ public class DependencyManager {
     }
 
     /**
-     * Recursively searches for dependencies and initializes them if required
+     * Finds objects for parameters
+     * @param parameterList a list of parameters
+     * @return a list of objects: Strings and AbstractDependencies to be injected
      */
-    public Object inject(Class<?> classToInject, int depth) {
-        if (depth == 512) {
-            throw new RuntimeException("Injection depth exceeded limits (512 iterations), " +
-                    "probably you have recursive dependencies");
-        }
+    public List<Object> getDependenciesForParameters(Parameter[] parameterList) {
+        return getDependenciesForParameters(parameterList, 0);
+    }
 
-        if (classToInject.getConstructors().length != 1) {
-            throw new RuntimeException("A dependency should contain single constructor which parameters should " +
-                    "be inherited from AbstractDependency or be a String object for DependencyLevel command");
-        }
-
-        var constructor = classToInject.getConstructors()[0];
+    /**
+     * Finds objects for parameters
+     * @param parameterList a list of parameters
+     * @param depth a recursive depth
+     * @return a list of objects: Strings and AbstractDependencies to be injected
+     */
+    private List<Object> getDependenciesForParameters(Parameter[] parameterList, int depth) {
         var constructorArgs = new ArrayList<Object>();
 
-        for (var parameter : classToInject.getConstructors()[0].getParameters()) {
-            if (parameter.getClass().equals(String.class)) {
+        for (var parameter : parameterList) {
+            if (parameter.getType().equals(String.class)) {
                 if (level == DependencyLevel.COMMAND) {
                     constructorArgs.add(command);
                 } else {
@@ -143,9 +144,9 @@ public class DependencyManager {
                             level + " can't have a String as a parameter");
                 }
             } else {
-                var dependencyClass = parameter.getClass();
+                var dependencyClass = parameter.getType();
 
-                if (dependencyClass.isAssignableFrom(AbstractDependency.class)) {
+                if (AbstractDependency.class.isAssignableFrom(dependencyClass)) {
                     var dependencyClassAnnotation = dependencyClass.getAnnotation(Dependency.class);
 
                     if (dependencyClassAnnotation == null) {
@@ -156,7 +157,7 @@ public class DependencyManager {
                         var dependencyObject = getDependency(dependencyClass);
 
                         if (dependencyObject == null && dependencyClassAnnotation.level().ordinal() == level.ordinal()) {
-                            this.dependencies.add((AbstractDependency) inject(dependencyClass, depth + 1));
+                            this.dependencies.add((AbstractDependency) constructDependency(dependencyClass, depth + 1));
 
                             dependencyObject = getDependency(dependencyClass);
 
@@ -174,8 +175,34 @@ public class DependencyManager {
             }
         }
 
+        return constructorArgs;
+    }
+
+    /**
+     * Constructs dependencies and searches for sub-dependencies
+     * @param classToInject a dependency class to inject
+     * @param depth a recursive depth
+     * @return a constructed object
+     */
+    private Object constructDependency(Class<?> classToInject, int depth) {
+        if (depth >= 512) {
+            throw new RuntimeException("Injection depth exceeded limits (512 iterations), " +
+                    "probably you have recursive dependencies");
+        }
+
+        if (!AbstractDependency.class.isAssignableFrom(classToInject)) {
+            throw new RuntimeException("A dependency should be inherited from AbstractDependency " + classToInject);
+        }
+
+        if (classToInject.getConstructors().length != 1) {
+            throw new RuntimeException("A dependency should contain single constructor which parameters should " +
+                    "be inherited from AbstractDependency or be a String object for DependencyLevel command");
+        }
+
+        var constructor = classToInject.getConstructors()[0];
+
         try {
-            return constructor.newInstance(constructorArgs.toArray());
+            return constructor.newInstance(getDependenciesForParameters(constructor.getParameters(), depth).toArray());
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
             throw new RuntimeException(e);
         }
@@ -190,7 +217,7 @@ public class DependencyManager {
 
         for (var dependency : getDependenciesForCurrentResolver(context)) {
             if (getDependency(dependency) == null) {
-                this.dependencies.add((AbstractDependency) inject(dependency, 0));
+                this.dependencies.add((AbstractDependency) constructDependency(dependency, 0));
             }
         }
     }

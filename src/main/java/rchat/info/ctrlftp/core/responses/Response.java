@@ -5,7 +5,7 @@ package rchat.info.ctrlftp.core.responses;
  */
 public class Response {
     private ResponseTypes type;
-    private String message = null;
+    private String message = "Message not provided";
 
     /**
      * A constructor of {@link Response}. You can use {@link Response#Response(ResponseTypes)}
@@ -36,7 +36,9 @@ public class Response {
      */
     public StringBuilder serialize() {
         return new StringBuilder(
-                String.valueOf(type.code) + " " +
-                        message.replaceAll("\r{0,1}\n", " ") + "\r\n");
+                type.code + (message != null ?
+                        (" " + message.replaceAll("\r{0,1}\n", " "))
+                        : "Message not provided")
+                        + "\r\n");
     }
 }
