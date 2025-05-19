@@ -49,6 +49,7 @@ public class Session implements Runnable {
 
             return (Response) targetMethod.invoke(null, methodParameters.toArray());
         } catch (Exception e) {
+            e.printStackTrace();
             return new Response(ResponseTypes.REQUESTED_ACTION_NOT_TAKEN);
         }
     }
@@ -66,8 +67,6 @@ public class Session implements Runnable {
         BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(client.getOutputStream()));
         writer.write(response.serialize().toString());
         writer.flush();
-
-        System.out.println(response.serialize().toString());
     }
 
     /**
