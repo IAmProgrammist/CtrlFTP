@@ -1,28 +1,39 @@
 package rchat.info.ctrlftp.core;
 
+import rchat.info.ctrlftp.core.dependencies.AbstractDependency;
+import rchat.info.ctrlftp.core.dependencies.DependencyManager;
+import rchat.info.ctrlftp.core.reflections.ClassesLoader;
+
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
- * A
+ * An FTP server
  */
 public class Server {
     private ServerSocket serverSocket;
     private ExecutorService sessions;
-    private Set<Class<?>> services;
-    private Set<Class<?>> dependencies;
+    private DependencyManager dependencyManager;
+    private Set<Class<?>> serviceClasses;
+    private Set<Class<? extends AbstractDependency>> dependencyClasses;
 
-    public Server() {
+    public Server(List<String> configs) {
         sessions = Executors.newVirtualThreadPerTaskExecutor();
-        loadServices();
+        serviceClasses = new HashSet<>();
+        dependencyClasses = new HashSet<>();
+        ClassesLoader.load(serviceClasses, dependencyClasses, configs);
+        dependencyManager = new DependencyManager(this);
     }
 
     public void mainLoop() throws IOException {
-        serverSocket = new ServerSocket();
+        serverSocket = new ServerSocket(21);
         while (!serverSocket.isClosed()) {
             Socket client = serverSocket.accept();
             sessions.submit(new Session(this, client));
@@ -33,23 +44,15 @@ public class Server {
         sessions.shutdown();
     }
 
-    /**
-     * Loads service classes from services.xml file
-     */
-    public void loadServices() {
+    public DependencyManager getDependencyManager() {
+        return dependencyManager;
     }
 
-    /**
-     * Loads dependencies from dependencies.xml file
-     */
-    private void loadDependencies() {
+    public Set<Class<?>> getServiceClasses() {
+        return serviceClasses;
     }
 
-    public Set<Class<?>> getServices() {
-        return services;
-    }
-
-    public Set<Class<?>> getDependencies() {
-        return dependencies;
+    public Set<Class<? extends AbstractDependency>> getDependencyClasses() {
+        return dependencyClasses;
     }
 }

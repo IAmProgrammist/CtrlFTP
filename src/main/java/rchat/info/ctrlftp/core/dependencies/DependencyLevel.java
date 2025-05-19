@@ -1,4 +1,4 @@
-package rchat.info.ctrlftp.core;
+package rchat.info.ctrlftp.core.dependencies;
 
 public enum DependencyLevel {
     /**

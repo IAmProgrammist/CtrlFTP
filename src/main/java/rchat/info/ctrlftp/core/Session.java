@@ -1,8 +1,13 @@
 package rchat.info.ctrlftp.core;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import rchat.info.ctrlftp.core.dependencies.DependencyLevel;
+import rchat.info.ctrlftp.core.dependencies.DependencyManager;
+import rchat.info.ctrlftp.core.reflections.MethodResolver;
+import rchat.info.ctrlftp.core.responses.Response;
+import rchat.info.ctrlftp.core.responses.ResponseTypes;
+
+import java.io.*;
+import java.lang.reflect.InvocationTargetException;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 
@@ -13,24 +18,56 @@ public class Session implements Runnable {
     private Server serverContext;
     private Socket client;
     private StringBuilder inputBuffer;
+    private DependencyManager dependencyManager;
 
-    public Session(Server serverContext, Socket client) { }
+    public Session(Server serverContext, Socket client) {
+        this.serverContext = serverContext;
+        this.client = client;
+        this.inputBuffer = new StringBuilder();
+        this.dependencyManager = new DependencyManager(serverContext,
+                DependencyLevel.SESSION,
+                serverContext.getDependencyManager());
+    }
 
     /**
      * A method that finds required method,
      * injects dependencies, launches method and
-     * sending back response
+     * sends back response
+     *
      * @param command a raw command from a user
      */
-    private void processCommand(String command) {
-        // TODO: Allothis
-        var optionalMethod = MethodResolver.findMethod(this.serverContext, command.split(" ")[0]);
-        if (optionalMethod.isEmpty()) {
+    private Response launchMethod(String command) {
+        try {
+            var optionalMethod = MethodResolver.findMethod(this.serverContext, command.split(" ")[0]);
+            if (optionalMethod.isEmpty()) {
+                return new Response(ResponseTypes.NOT_IMPLEMENTED, "Method not implemented");
+            }
+            var targetMethod = optionalMethod.get();
 
+            DependencyManager local = new DependencyManager(serverContext, command, this.dependencyManager);
+            var methodParameters = local.getDependenciesForParameters(targetMethod.getParameters());
+
+            return (Response) targetMethod.invoke(null, methodParameters.toArray());
+        } catch (Exception e) {
+            return new Response(ResponseTypes.REQUESTED_ACTION_NOT_TAKEN);
         }
-        // 2. Find required dependencies and inject them
-        // 3. Launch method
-        // 4. Send back response from method
+    }
+
+    /**
+     * A method that gets result from method launching and sends it to a user
+     *
+     * @param command a raw command from a user
+     */
+    private void processCommand(String command) throws IOException {
+        sendResponse(launchMethod(command));
+    }
+
+    private void sendResponse(Response response) throws IOException {
+        BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(client.getOutputStream()));
+        writer.write(response.serialize().toString());
+        writer.flush();
+
+        System.out.println(response.serialize().toString());
     }
 
     /**
@@ -39,6 +76,7 @@ public class Session implements Runnable {
     @Override
     public void run() {
         try {
+            sendResponse(new Response(ResponseTypes.COMMAND_OK, "Connected succesfully"));
             BufferedReader r = new BufferedReader(new InputStreamReader(client.getInputStream(), StandardCharsets.UTF_8));
             char[] buffer = new char[1024];
             int read;
