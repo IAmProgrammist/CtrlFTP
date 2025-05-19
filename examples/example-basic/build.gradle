@@ -1,0 +1,12 @@
+plugins {
+    id 'application'
+}
+
+application {
+    mainClass = 'rchat.info.ctrlftp.examplebasic.Main'
+}
+
+dependencies {
+    implementation 'rchat.info:ctrlftp-core:1.0'
+    implementation 'rchat.info:ctrlftp-dependencies:1.0'
+}
