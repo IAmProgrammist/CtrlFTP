@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<config>
+    <services>
+        <service>rchat.info.ctrlftp.examplebasic.services.SuperServiceA</service>
+    </services>
+    <dependencies>
+        <dependency>rchat.info.ctrlftp.examplebasic.dependencies.GlobalDependencyA</dependency>
+        <dependency>rchat.info.ctrlftp.examplebasic.dependencies.GlobalDependencyB</dependency>
+        <dependency>rchat.info.ctrlftp.examplebasic.dependencies.GlobalDependencyC</dependency>
+        <dependency>rchat.info.ctrlftp.examplebasic.dependencies.SuperDependencyB</dependency>
+        <dependency>rchat.info.ctrlftp.examplebasic.dependencies.SuperDependencyC</dependency>
+    </dependencies>
+</config>

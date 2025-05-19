@@ -1,9 +1,9 @@
-package rchat.info.ctrlftp.dependencies;
+package rchat.info.ctrlftp.examplebasic.dependencies;
 
 import rchat.info.ctrlftp.core.annotations.Dependency;
 import rchat.info.ctrlftp.core.dependencies.AbstractDependency;
 import rchat.info.ctrlftp.core.dependencies.DependencyLevel;
 
-@Dependency(level = DependencyLevel.SESSION)
-public class SuperDependencyB extends AbstractDependency {
+@Dependency(level = DependencyLevel.GLOBAL)
+public class GlobalDependencyB extends AbstractDependency {
 }

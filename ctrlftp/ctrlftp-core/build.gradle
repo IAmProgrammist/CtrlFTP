@@ -3,7 +3,7 @@ plugins {
 }
 
 group = 'rchat.info'
-version = '0.1-PRE-ALPHA'
+version = '1.0'
 
 repositories {
     mavenCentral()

@@ -1,4 +1,4 @@
-package rchat.info.ctrlftp.dependencies;
+package rchat.info.ctrlftp.examplebasic.dependencies;
 
 import rchat.info.ctrlftp.core.annotations.Dependency;
 import rchat.info.ctrlftp.core.dependencies.AbstractDependency;

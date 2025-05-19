@@ -1,10 +1,10 @@
-package rchat.info.ctrlftp.services;
+package rchat.info.ctrlftp.examplebasic.services;
 
 import rchat.info.ctrlftp.core.annotations.Command;
 import rchat.info.ctrlftp.core.responses.Response;
 import rchat.info.ctrlftp.core.responses.ResponseTypes;
-import rchat.info.ctrlftp.dependencies.GlobalDependencyA;
-import rchat.info.ctrlftp.dependencies.SuperDependencyC;
+import rchat.info.ctrlftp.examplebasic.dependencies.GlobalDependencyA;
+import rchat.info.ctrlftp.examplebasic.dependencies.SuperDependencyC;
 
 public class SuperServiceA {
     @Command(name = "USER")
