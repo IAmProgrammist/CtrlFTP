@@ -51,7 +51,7 @@ public class FileAcceptTransferDependency extends AbstractDependency {
     }
 
     /**
-     * Connects to a client
+     * Connects this.clientSocket to a client data port
      *
      * @throws IOException
      */
@@ -82,27 +82,22 @@ public class FileAcceptTransferDependency extends AbstractDependency {
                 try {
                     temporaryFile = File.createTempFile("accept-file-",
                             "file-accept-transfer-dependency");
-
-                    BufferedWriter temporaryFileWriter = new BufferedWriter(
-                            new PrintWriter(new FileOutputStream(temporaryFile))
+                    pipeReaderToWriter(
+                            new InputStreamReader(this.clientSocket.getInputStream()),
+                            new OutputStreamWriter(new FileOutputStream(temporaryFile))
                     );
-                    BufferedReader r = new BufferedReader(
-                            new InputStreamReader(this.clientSocket.getInputStream())
-                    );
-                    char[] buffer = new char[1024];
-                    int readAmount;
-                    while ((readAmount = r.read(buffer)) != -1) {
-                        temporaryFileWriter.write(buffer, 0, readAmount);
-                    }
-
-                    temporaryFileWriter.flush();
-                    temporaryFileWriter.close();
                     events.onAccept(temporaryFile);
                 } catch (Exception e) {
                     events.onError(e);
                 } finally {
                     if (temporaryFile != null)
                         temporaryFile.delete();
+                }
+
+                try {
+                    disconnect();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
                 }
             });
         } catch (Exception e) {
@@ -112,6 +107,9 @@ public class FileAcceptTransferDependency extends AbstractDependency {
 
     /**
      * Sends a file to a client
+     *
+     * @param file a path to a file
+     * @param events a callback to call onError and onTransferred events
      */
     public void send(File file, FileTransferEvent events) {
         try {
@@ -122,34 +120,52 @@ public class FileAcceptTransferDependency extends AbstractDependency {
             connect();
 
             this.acceptTransferThread = Thread.ofVirtual().start(() -> {
+                FileInputStream fis = null;
                 try {
-                    temporaryFile = File.createTempFile("accept-file-",
-                            "file-accept-transfer-dependency");
-
-                    BufferedWriter temporaryFileWriter = new BufferedWriter(
-                            new PrintWriter(new FileOutputStream(temporaryFile))
+                    fis = new FileInputStream(file);
+                    pipeReaderToWriter(
+                            new InputStreamReader(fis),
+                            new OutputStreamWriter(this.clientSocket.getOutputStream())
                     );
-                    BufferedReader r = new BufferedReader(
-                            new InputStreamReader(this.clientSocket.getInputStream())
-                    );
-                    char[] buffer = new char[1024];
-                    int readAmount;
-                    while ((readAmount = r.read(buffer)) != -1) {
-                        temporaryFileWriter.write(buffer, 0, readAmount);
-                    }
-
-                    temporaryFileWriter.flush();
-                    temporaryFileWriter.close();
-                    events.onAccept(temporaryFile);
+                    events.onTransferred();
                 } catch (Exception e) {
                     events.onError(e);
                 } finally {
-                    if (temporaryFile != null)
-                        temporaryFile.delete();
+                    if (fis != null) {
+                        try {
+                            fis.close();
+                        } catch (IOException e) {
+                            events.onError(e);
+                        }
+                    }
+                }
+
+                try {
+                    disconnect();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
                 }
             });
         } catch (Exception e) {
             events.onError(e);
         }
+    }
+
+    /**
+     * Pipes data from a reader to a writer
+     * @param reader a reader
+     * @param writer a writer
+     */
+    protected static void pipeReaderToWriter(Reader reader, Writer writer) throws IOException {
+        BufferedWriter bufferedWriter = new BufferedWriter(writer);
+        BufferedReader bufferedReader = new BufferedReader(reader);
+        char[] buffer = new char[8192];
+        int readAmount;
+        while ((readAmount = bufferedReader.read(buffer)) != -1) {
+            bufferedWriter.write(buffer, 0, readAmount);
+        }
+
+        bufferedWriter.flush();
+        bufferedWriter.close();
     }
 }
