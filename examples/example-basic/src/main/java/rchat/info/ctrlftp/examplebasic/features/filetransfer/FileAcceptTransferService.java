@@ -3,8 +3,10 @@ package rchat.info.ctrlftp.examplebasic.features.filetransfer;
 import rchat.info.ctrlftp.core.annotations.Command;
 import rchat.info.ctrlftp.core.responses.Response;
 import rchat.info.ctrlftp.core.responses.ResponseTypes;
+import rchat.info.ctrlftp.dependencies.deserializer.SingleStringDeserializer;
 import rchat.info.ctrlftp.examplebasic.features.authentication.BasicAuthenticationDependency;
 import rchat.info.ctrlftp.examplebasic.features.authentication.BasicAuthenticationService;
+import rchat.info.ctrlftp.examplebasic.features.navigation.NavigationDependency;
 
 import java.io.IOException;
 import java.util.AbstractMap;
@@ -39,41 +41,29 @@ public class FileAcceptTransferService {
                                       BasicAuthenticationDependency auth) {
         var authResult = auth.authenticate();
         if (!authResult.isAuthenticated())
-                return authResult.cause();
-
-        try {
-            fileAcceptTransferDependency.setPassive(true);
-            var serverInfo = fileAcceptTransferDependency.getServerInfo();
-
-            return new Response(ResponseTypes.ENTERING_PASSIVE_MODE, serverInfo.getKey() + ":" + serverInfo.getValue());
-        } catch (IOException e) {
-            return new Response(ResponseTypes.SERVICE_NOT_AVAILABLE, "Couldn't make current server passive");
-        }
-    }
-
-    @Command(name = "EPSV")
-    public static Response setEPassive(FileAcceptTransferDependency fileAcceptTransferDependency,
-                                       BasicAuthenticationDependency auth) {
-        var authResult = auth.authenticate();
-        if (!authResult.isAuthenticated())
             return authResult.cause();
 
         try {
             fileAcceptTransferDependency.setPassive(true);
             var serverInfo = fileAcceptTransferDependency.getServerInfo();
+            String[] ipBytes = serverInfo.getKey().split("\\.");
 
-            return new Response(ResponseTypes.ENTERING_PASSIVE_MODE, String.format("Entering Extended Passive Mode (|||%d|)", serverInfo.getValue()));
+            return new Response(ResponseTypes.ENTERING_PASSIVE_MODE, String.format("Entering Passive Mode (%s,%s,%s,%s,%d,%d)",
+                    ipBytes[0], ipBytes[1], ipBytes[2], ipBytes[3], serverInfo.getValue() >> 8,
+                    serverInfo.getValue() & 0xFF));
         } catch (IOException e) {
             return new Response(ResponseTypes.SERVICE_NOT_AVAILABLE, "Couldn't make current server passive");
         }
     }
 
     @Command(name = "TYPE")
-    public static Response setType(BasicAuthenticationDependency auth) {
+    public static Response setType(BasicAuthenticationDependency auth,
+                                   FilePipeDependency pipe,
+                                   SingleStringDeserializer arg) {
         var authResult = auth.authenticate();
         if (!authResult.isAuthenticated())
             return authResult.cause();
 
-        return new Response(ResponseTypes.COMMAND_OK);
+        return pipe.setType(arg.getDeserializeData().arg());
     }
 }

@@ -76,7 +76,9 @@ public class AcceptTransferDependency<Pipe extends BasePipeDependency<DataClass>
      */
     public AbstractMap.SimpleEntry<String, Integer> getServerInfo() throws UnknownHostException {
         if (this.isPassive && this.server != null && !this.server.isClosed()) {
-            return new AbstractMap.SimpleEntry<>(InetAddress.getLocalHost().toString(), this.server.getLocalPort());
+            var remoteSocketAddress = session.getRemoteSocketAddress().toString();
+            return new AbstractMap.SimpleEntry<>(remoteSocketAddress.substring(1, remoteSocketAddress.indexOf(":")),
+                    this.server.getLocalPort());
         }
 
         return null;
@@ -91,7 +93,7 @@ public class AcceptTransferDependency<Pipe extends BasePipeDependency<DataClass>
         if (this.acceptTransferThread != null && this.acceptTransferThread.isAlive()) {
             this.acceptTransferThread.interrupt();
         }
-        if (clientSocket != null && clientSocket.isConnected()) {
+        if (clientSocket != null && !clientSocket.isClosed()) {
             clientSocket.close();
         }
     }
@@ -103,15 +105,20 @@ public class AcceptTransferDependency<Pipe extends BasePipeDependency<DataClass>
      * @throws IOException
      */
     private void connect() throws IOException {
-        if (clientSocket.isConnected()) return;
+        if (clientSocket != null && !clientSocket.isClosed()) return;
 
         if (this.isPassive) {
             if (this.server == null) {
-                throw new RuntimeException("Server is not initialized");
+                this.server = new ServerSocket(0);
             }
 
             clientSocket = this.server.accept();
         } else {
+            if (this.server != null && !this.server.isClosed()) {
+                this.server.close();
+                this.server = null;
+            }
+
             clientSocket = new Socket(
                     this.clientAddress.getKey() == null ?
                             this.session.getRemoteSocketAddress().toString() :

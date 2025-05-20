@@ -12,6 +12,6 @@ public class SingleStringDeserializer extends BaseDeserializer<SingleStringDeser
     public SingleStringDeserialized deserialize(String command) {
         var firstSpaceIndex = command.indexOf(' ');
 
-        return new SingleStringDeserialized(command.substring(firstSpaceIndex + 1));
+        return new SingleStringDeserialized(firstSpaceIndex == -1 ? "" : command.substring(firstSpaceIndex + 1));
     }
 }

@@ -20,7 +20,7 @@ public class DataPortDeserializer extends BaseDeserializer<DataPortDeserializer.
         if (bytesArgs.length == 6) {
             String ip = String.format("%s.%s.%s.%s",
                     bytesArgs[0], bytesArgs[1], bytesArgs[2], bytesArgs[3]);
-            Integer port = Integer.parseInt(bytesArgs[4] + bytesArgs[5]);
+            Integer port = Integer.parseInt(bytesArgs[4]) << 8 + Integer.parseInt(bytesArgs[5]);
 
             return new DataPort(ip, port);
         }

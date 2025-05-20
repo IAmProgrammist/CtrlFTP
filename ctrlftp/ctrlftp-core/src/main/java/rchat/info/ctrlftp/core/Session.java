@@ -69,7 +69,7 @@ public class Session implements Runnable {
         sendResponse(launchMethod(command));
     }
 
-    private void sendResponse(Response response) throws IOException {
+    public void sendResponse(Response response) throws IOException {
         if (client.isClosed() || response == null) return;
 
         BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(client.getOutputStream()));
@@ -112,7 +112,6 @@ public class Session implements Runnable {
             int read;
             while ((read = r.read(buffer)) != -1) {
                 inputBuffer.append(new String(buffer, 0, read));
-                System.out.println(inputBuffer);
 
                 int newLinePosition;
                 while ((newLinePosition = inputBuffer.indexOf("\r\n")) != -1) {
