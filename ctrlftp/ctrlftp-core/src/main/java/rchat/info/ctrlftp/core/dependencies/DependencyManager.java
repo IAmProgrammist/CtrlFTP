@@ -1,6 +1,7 @@
 package rchat.info.ctrlftp.core.dependencies;
 
 import rchat.info.ctrlftp.core.Server;
+import rchat.info.ctrlftp.core.Session;
 import rchat.info.ctrlftp.core.annotations.Dependency;
 
 import java.lang.reflect.InvocationTargetException;
@@ -13,6 +14,8 @@ public class DependencyManager {
     private DependencyManager parentResolver = null;
     private List<AbstractDependency> dependencies;
     private final String command;
+    private final Server serverContext;
+    private final Session sessionContext;
 
     /**
      * This constructor may be used for creating global level dependency resolver.
@@ -24,6 +27,8 @@ public class DependencyManager {
         this.level = DependencyLevel.GLOBAL;
         this.dependencies = new ArrayList<>();
         this.command = null;
+        this.serverContext = context;
+        this.sessionContext = null;
 
         linkDependencies(context);
     }
@@ -35,15 +40,17 @@ public class DependencyManager {
      * {@link DependencyManager#DependencyManager(Server, String, DependencyManager)}  DependencyResolver} for
      * creating command-leveled dependency resolver
      *
-     * @param context a server context
-     * @param level a level
+     * @param context        a server context
+     * @param level          a level
      * @param parentResolver a parent-level resolver
      */
-    public DependencyManager(Server context, DependencyLevel level, DependencyManager parentResolver) {
+    public DependencyManager(Server context, Session sessionContext, DependencyLevel level, DependencyManager parentResolver) {
         this.level = level;
         this.dependencies = new ArrayList<>();
         this.parentResolver = parentResolver;
         this.command = null;
+        this.serverContext = context;
+        this.sessionContext = sessionContext;
         if (areParentAndChildLevelsNotCompatible()) {
             throw new RuntimeException(
                     "A parent dependency resolver shouldn't have upper level. " +
@@ -58,15 +65,17 @@ public class DependencyManager {
      * A dependency resolver could be created for a command scope. The difference for this resolver
      * is that command string should be passed and processed by dependencies.
      *
-     * @param context a server context
-     * @param command a raw command coming from client
+     * @param context        a server context
+     * @param command        a raw command coming from client
      * @param parentResolver a parent-level resolver
      */
-    public DependencyManager(Server context, String command, DependencyManager parentResolver) {
+    public DependencyManager(Server context, Session sessionContext, String command, DependencyManager parentResolver) {
         this.level = DependencyLevel.COMMAND;
         this.dependencies = new ArrayList<>();
         this.parentResolver = parentResolver;
         this.command = command;
+        this.serverContext = context;
+        this.sessionContext = sessionContext;
         if (areParentAndChildLevelsNotCompatible()) {
             throw new RuntimeException(
                     "A parent dependency resolver shouldn't have upper level. " +
@@ -79,6 +88,7 @@ public class DependencyManager {
 
     /**
      * Checks if parent and current resolvers levels are compatible
+     *
      * @return true if they are not compatible. Amogus tun dun dun dun dun dun dun
      * dududun. PUM BUM. Tun-dun-dun-dun-dun-dun-DUN! DU-du-du-DU-du-du-DUN!
      */
@@ -88,6 +98,7 @@ public class DependencyManager {
 
     /**
      * Finds dependency classes with level that equals to dependency resolver level
+     *
      * @param context a server context
      * @return a list of suitable classes
      */
@@ -104,6 +115,7 @@ public class DependencyManager {
 
     /**
      * Searches for dependencies in dependency manager and paren dependency managers
+     *
      * @param dependencyClass a class to search for
      * @return dependency with fitting class
      */
@@ -119,6 +131,7 @@ public class DependencyManager {
 
     /**
      * Finds objects for parameters
+     *
      * @param parameterList a list of parameters
      * @return a list of objects: Strings and AbstractDependencies to be injected
      */
@@ -128,8 +141,9 @@ public class DependencyManager {
 
     /**
      * Finds objects for parameters
+     *
      * @param parameterList a list of parameters
-     * @param depth a recursive depth
+     * @param depth         a recursive depth
      * @return a list of objects: Strings and AbstractDependencies to be injected
      */
     private List<Object> getDependenciesForParameters(Parameter[] parameterList, int depth) {
@@ -142,6 +156,14 @@ public class DependencyManager {
                 } else {
                     throw new RuntimeException("A dependency " + parameter.getClass() + " with not command-level " +
                             level + " can't have a String as a parameter");
+                }
+            } else if (Server.class.isAssignableFrom(parameter.getType())) {
+                constructorArgs.add(this.serverContext);
+            } else if (Session.class.isAssignableFrom(parameter.getType())) {
+                if (sessionContext != null) {
+                    constructorArgs.add(this.sessionContext);
+                } else {
+                    throw new RuntimeException("A session context is not available now");
                 }
             } else {
                 var dependencyClass = parameter.getType();
@@ -180,8 +202,9 @@ public class DependencyManager {
 
     /**
      * Constructs dependencies and searches for sub-dependencies
+     *
      * @param classToInject a dependency class to inject
-     * @param depth a recursive depth
+     * @param depth         a recursive depth
      * @return a constructed object
      */
     private Object constructDependency(Class<?> classToInject, int depth) {
@@ -210,6 +233,7 @@ public class DependencyManager {
 
     /**
      * Initializes dependencies and executes dependency injection for dependency
+     *
      * @param context a server context
      */
     private void linkDependencies(Server context) {
