@@ -21,7 +21,7 @@ import java.util.AbstractMap;
 @Dependency(level = DependencyLevel.SESSION)
 public class AcceptTransferDependency<Pipe extends BasePipeDependency<DataClass>, DataClass> extends AbstractDependency {
     private final Session session;
-    private int clientPort = 20;
+    private AbstractMap.SimpleEntry<String, Integer> clientAddress = new AbstractMap.SimpleEntry<>("", 20);
     private Socket clientSocket = null;
     private ServerSocket server = null;
     private Thread acceptTransferThread = null;
@@ -34,15 +34,15 @@ public class AcceptTransferDependency<Pipe extends BasePipeDependency<DataClass>
     }
 
     /**
-     * Updates client port. Warning: stops current data connection if new client port is different
+     * Updates client address and port. Warning: stops current data connection if new client port is different
      *
-     * @param clientPort a new client port value
+     * @param address a new client address and port
      */
-    public void setClientPort(int clientPort) throws IOException {
-        if (this.clientPort != clientPort)
+    public void setClientAddress(AbstractMap.SimpleEntry<String, Integer> address) throws IOException {
+        if (!this.clientAddress.equals(address))
             disconnect();
 
-        this.clientPort = clientPort;
+        this.clientAddress = address;
     }
 
     /**
@@ -58,13 +58,17 @@ public class AcceptTransferDependency<Pipe extends BasePipeDependency<DataClass>
             }
 
             if (isPassive) {
-                this.server = new ServerSocket();
+                this.server = new ServerSocket(0);
             } else {
                 this.server = null;
             }
 
             this.isPassive = isPassive;
         }
+    }
+
+    public boolean isPassive() {
+        return isPassive;
     }
 
     /**
@@ -102,15 +106,17 @@ public class AcceptTransferDependency<Pipe extends BasePipeDependency<DataClass>
         if (clientSocket.isConnected()) return;
 
         if (this.isPassive) {
-            if (this.server != null) {
-                clientSocket = this.server.accept();
+            if (this.server == null) {
+                throw new RuntimeException("Server is not initialized");
             }
 
-            throw new RuntimeException("Server is not initialized");
+            clientSocket = this.server.accept();
         } else {
             clientSocket = new Socket(
-                    this.session.getRemoteSocketAddress().toString(),
-                    this.clientPort);
+                    this.clientAddress.getKey() == null ?
+                            this.session.getRemoteSocketAddress().toString() :
+                            this.clientAddress.getKey(),
+                    this.clientAddress.getValue());
         }
     }
 
@@ -123,7 +129,7 @@ public class AcceptTransferDependency<Pipe extends BasePipeDependency<DataClass>
     public void accept(AcceptEvent<DataClass> events) {
         try {
             if (this.acceptTransferThread != null && this.acceptTransferThread.isAlive()) {
-                throw new AcceptTransferIsBusy("File accept transfer is busy right now");
+                throw new AcceptTransferIsBusy("Accept transfer is busy right now");
             }
 
             this.acceptTransferThread = Thread.ofVirtual().start(() -> {
@@ -165,7 +171,7 @@ public class AcceptTransferDependency<Pipe extends BasePipeDependency<DataClass>
     public void send(DataClass data, TransferEvent events) {
         try {
             if (this.acceptTransferThread != null && this.acceptTransferThread.isAlive()) {
-                throw new AcceptTransferIsBusy("File accept transfer is busy right now");
+                throw new AcceptTransferIsBusy("Accept transfer is busy right now");
             }
 
             this.acceptTransferThread = Thread.ofVirtual().start(() -> {

@@ -5,6 +5,9 @@ import rchat.info.ctrlftp.core.annotations.Command;
 import rchat.info.ctrlftp.core.responses.Response;
 import rchat.info.ctrlftp.core.responses.ResponseTypes;
 import rchat.info.ctrlftp.dependencies.deserializer.SingleStringDeserializer;
+import rchat.info.ctrlftp.examplebasic.features.filetransfer.FileAcceptTransferDependency;
+
+import java.io.IOException;
 
 public class BasicAuthenticationService {
     @Command(name = "USER")
@@ -23,27 +26,25 @@ public class BasicAuthenticationService {
         return authResponse.cause();
     }
 
-    @Command(name = "ACCT")
-    public static Response onAcct(BasicAuthenticationDependency auth) {
-        var authResponse = auth.authenticate();
-
-        if (authResponse.isAuthenticated()) {
-            return new Response(ResponseTypes.COMMAND_OK,
-                    String.format("You are logged in as a %s", authResponse.authInfo().getLogin()));
-        } else return authResponse.cause();
-    }
-
     @Command(name = "REIN")
-    public static Response onRein(BasicAuthenticationDependency auth) {
-        // TODO: add a dependency to stop any file transfers
+    public static Response onRein(BasicAuthenticationDependency auth,
+                                  FileAcceptTransferDependency fileAcceptTransferDependency) {
+        try {
+            fileAcceptTransferDependency.disconnect();
+        } catch (IOException _) {
+        }
         auth.logout();
 
         return new Response(ResponseTypes.COMMAND_OK, "Logout succesfully");
     }
 
     @Command(name = "QUIT")
-    public static Response onQuit(BasicAuthenticationDependency auth, Session systemSessionContext) {
-        // TODO: add a dependency to stop any file transfers
+    public static Response onQuit(BasicAuthenticationDependency auth, Session systemSessionContext,
+                                  FileAcceptTransferDependency fileAcceptTransferDependency) {
+        try {
+            fileAcceptTransferDependency.disconnect();
+        } catch (IOException _) {
+        }
         auth.logout();
         systemSessionContext.disconnect(new Response(ResponseTypes.COMMAND_OK, "Quitted"));
 

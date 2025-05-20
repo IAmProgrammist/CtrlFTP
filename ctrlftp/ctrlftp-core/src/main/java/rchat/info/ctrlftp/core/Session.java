@@ -42,7 +42,7 @@ public class Session implements Runnable {
         try {
             var optionalMethod = MethodResolver.findMethod(this.serverContext, command.split(" ")[0]);
             if (optionalMethod.isEmpty()) {
-                return new Response(ResponseTypes.NOT_IMPLEMENTED, "Method not implemented");
+                return new Response(ResponseTypes.NOT_IMPLEMENTED, "Method " + command + " not implemented");
             }
             var targetMethod = optionalMethod.get();
 
@@ -112,6 +112,7 @@ public class Session implements Runnable {
             int read;
             while ((read = r.read(buffer)) != -1) {
                 inputBuffer.append(new String(buffer, 0, read));
+                System.out.println(inputBuffer);
 
                 int newLinePosition;
                 while ((newLinePosition = inputBuffer.indexOf("\r\n")) != -1) {
