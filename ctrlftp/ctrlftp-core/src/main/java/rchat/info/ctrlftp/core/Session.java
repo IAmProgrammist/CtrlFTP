@@ -69,7 +69,7 @@ public class Session implements Runnable {
     }
 
     private void sendResponse(Response response) throws IOException {
-        if (client.isClosed()) return;
+        if (client.isClosed() || response == null) return;
 
         BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(client.getOutputStream()));
         writer.write(response.serialize().toString());
@@ -79,8 +79,9 @@ public class Session implements Runnable {
     /**
      * Disconnects from the current user
      */
-    public void disconnect() {
+    public void disconnect(Response reason) {
         try {
+            sendResponse(reason);
             client.close();
         } catch (IOException e) {
             throw new RuntimeException(e);
