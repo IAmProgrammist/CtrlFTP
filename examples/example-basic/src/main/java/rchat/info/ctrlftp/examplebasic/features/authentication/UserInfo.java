@@ -1,4 +1,4 @@
-package rchat.info.ctrlftp.examplebasic.dependencies.authentication;
+package rchat.info.ctrlftp.examplebasic.features.authentication;
 
 public class UserInfo {
     private String login;

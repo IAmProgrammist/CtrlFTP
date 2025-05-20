@@ -1,15 +1,15 @@
-package rchat.info.ctrlftp.examplebasic.dependencies.authentication;
+package rchat.info.ctrlftp.examplebasic.features.authentication;
 
 import rchat.info.ctrlftp.core.responses.Response;
 import rchat.info.ctrlftp.core.responses.ResponseTypes;
 import rchat.info.ctrlftp.dependencies.authentication.AuthenticationResult;
 import rchat.info.ctrlftp.dependencies.authentication.BaseAuthenticationDependency;
 
-public class BasicAuthentication extends BaseAuthenticationDependency<UserInfo> {
+public class BasicAuthenticationDependency extends BaseAuthenticationDependency<UserInfo> {
     private UserInfo userInfo;
     private boolean passwordSetup = false;
 
-    public BasicAuthentication() {
+    public BasicAuthenticationDependency() {
         this.userInfo = new UserInfo();
     }
 
@@ -38,5 +38,11 @@ public class BasicAuthentication extends BaseAuthenticationDependency<UserInfo> 
         return new AuthenticationResult<>(true,
                 new Response(ResponseTypes.AUTH_SUCCESS, "Authentication succeded"),
                 this.userInfo);
+    }
+
+    @Override
+    public void logout() {
+        this.userInfo.setLogin(null);
+        this.passwordSetup = false;
     }
 }

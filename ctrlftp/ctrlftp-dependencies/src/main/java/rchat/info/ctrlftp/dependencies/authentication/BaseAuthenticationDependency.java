@@ -16,4 +16,9 @@ public abstract class BaseAuthenticationDependency<UserInfo> extends AbstractDep
      * @return result of authentication
      */
     public abstract AuthenticationResult<UserInfo> authenticate();
+
+    /**
+     * Logouts from the accout
+     */
+    public abstract void logout();
 }

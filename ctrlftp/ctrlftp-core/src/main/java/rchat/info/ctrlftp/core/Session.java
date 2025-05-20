@@ -25,6 +25,7 @@ public class Session implements Runnable {
         this.client = client;
         this.inputBuffer = new StringBuilder();
         this.dependencyManager = new DependencyManager(serverContext,
+                this,
                 DependencyLevel.SESSION,
                 serverContext.getDependencyManager());
     }
@@ -44,7 +45,11 @@ public class Session implements Runnable {
             }
             var targetMethod = optionalMethod.get();
 
-            DependencyManager local = new DependencyManager(serverContext, command, this.dependencyManager);
+            DependencyManager local = new DependencyManager(
+                    serverContext,
+                    this,
+                    command,
+                    this.dependencyManager);
             var methodParameters = local.getDependenciesForParameters(targetMethod.getParameters());
 
             return (Response) targetMethod.invoke(null, methodParameters.toArray());
@@ -64,9 +69,23 @@ public class Session implements Runnable {
     }
 
     private void sendResponse(Response response) throws IOException {
+        if (client.isClosed() || response == null) return;
+
         BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(client.getOutputStream()));
         writer.write(response.serialize().toString());
         writer.flush();
+    }
+
+    /**
+     * Disconnects from the current user
+     */
+    public void disconnect(Response reason) {
+        try {
+            sendResponse(reason);
+            client.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
