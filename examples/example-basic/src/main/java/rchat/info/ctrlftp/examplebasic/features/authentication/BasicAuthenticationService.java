@@ -45,8 +45,8 @@ public class BasicAuthenticationService {
     public static Response onQuit(BasicAuthenticationDependency auth, Session systemSessionContext) {
         // TODO: add a dependency to stop any file transfers
         auth.logout();
-        systemSessionContext.disconnect();
+        systemSessionContext.disconnect(new Response(ResponseTypes.COMMAND_OK, "Quitted"));
 
-        return new Response(ResponseTypes.COMMAND_OK, "Quitted");
+        return null;
     }
 }
