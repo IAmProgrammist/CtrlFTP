@@ -4,6 +4,7 @@
         <service>rchat.info.ctrlftp.examplebasic.features.authentication.BasicAuthenticationService</service>
         <service>rchat.info.ctrlftp.examplebasic.features.filetransfer.FileAcceptTransferService</service>
         <service>rchat.info.ctrlftp.examplebasic.features.navigation.NavigationService</service>
+        <service>rchat.info.ctrlftp.examplebasic.features.service.ServiceService</service>
     </services>
     <dependencies>
         <dependency>rchat.info.ctrlftp.dependencies.deserializer.SingleStringDeserializer</dependency>
@@ -11,5 +12,6 @@
         <dependency>rchat.info.ctrlftp.examplebasic.features.filetransfer.FileAcceptTransferDependency</dependency>
         <dependency>rchat.info.ctrlftp.examplebasic.features.filetransfer.FilePipeDependency</dependency>
         <dependency>rchat.info.ctrlftp.examplebasic.features.navigation.NavigationDependency</dependency>
+        <dependency>rchat.info.ctrlftp.examplebasic.features.service.ServiceDependency</dependency>
     </dependencies>
 </config>
