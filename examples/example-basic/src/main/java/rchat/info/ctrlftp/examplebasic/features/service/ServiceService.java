@@ -14,6 +14,9 @@ import rchat.info.ctrlftp.examplebasic.features.navigation.NavigationDependency;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 
 public class ServiceService {
     @Command(name = "SYST")
@@ -78,8 +81,6 @@ public class ServiceService {
             return authResult.cause();
 
         var file = navigation.getPathRelativeToCWD(args.getDeserializeData().arg());
-        if (!file.toFile().isFile())
-            return new Response(ResponseTypes.BAD_PARAMETERS, "Invalid filename");
 
         fileTransfer.accept(new AcceptEvent<FilePipeRecord>() {
             @Override
@@ -121,11 +122,9 @@ public class ServiceService {
             return authResult.cause();
 
         var file = navigation.getPathRelativeToCWD(args.getDeserializeData().arg());
-        if (!file.toFile().isFile())
-            return new Response(ResponseTypes.BAD_PARAMETERS, "Invalid filename");
 
         fileTransfer.accept(new AcceptEvent<FilePipeRecord>() {
-            private File getUniqueFileName(String folderName, String searchedFilename, String path) {
+            private File getUniqueFile(String folderName, String searchedFilename) {
                 int num = 1;
                 String extension = getExtension(searchedFilename);
                 String filename = searchedFilename.substring(0, searchedFilename.lastIndexOf("."));
@@ -141,28 +140,74 @@ public class ServiceService {
                 return name.substring(name.lastIndexOf("."));
             }
 
-            private File getUniqueFileName(String path) {
-                int num = 1;
-                String extension = getExtension(path);
-                String filenameWithoutExtension = path.substring(0, path.lastIndexOf("."));
-                File file = new File(filename);
-                while (file.exists()) {
-                    searchedFilename = filename + "(" + (num++) + ")" + extension;
-                    file = new File(folderName, searchedFilename);
-                }
-                return file;
-            }
-
             @Override
             public void onAccept(FilePipeRecord tempFile) {
                 var oldFile = file.toFile();
                 if (!oldFile.exists()) {
                     tempFile.iFile().renameTo(new File(oldFile.getAbsolutePath()));
                 } else {
-                    tempFile.iFile().renameTo(new File(getUniqueFileName(
+                    tempFile.iFile().renameTo(getUniqueFile(
                             oldFile.getParent(),
+                            oldFile.getName()
+                    ));
+                }
 
-                    )));
+                try {
+                    session.sendResponse(new Response(ResponseTypes.FILE_ACTION_OK, "File moved successfully"));
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+
+            @Override
+            public void onError(Exception e) {
+                try {
+                    session.sendResponse(new Response(ResponseTypes.FILE_BUSY));
+                } catch (IOException ex) {
+                    throw new RuntimeException(ex);
+                }
+            }
+        });
+
+        return new Response(ResponseTypes.ABOUT_TO_OPEN_CONNECTION, "Ready to send data");
+    }
+
+    @Command(name = "APPE")
+    public static Response appendFile(
+            BasicAuthenticationDependency auth,
+            FileAcceptTransferDependency fileTransfer,
+            NavigationDependency navigation,
+            SingleStringDeserializer args,
+            Session session
+    ) {
+        var authResult = auth.authenticate();
+        if (!authResult.isAuthenticated())
+            return authResult.cause();
+
+        var file = navigation.getPathRelativeToCWD(args.getDeserializeData().arg());
+        if (!file.toFile().isFile())
+            return new Response(ResponseTypes.BAD_PARAMETERS, "Invalid filename");
+
+        fileTransfer.accept(new AcceptEvent<FilePipeRecord>() {
+            @Override
+            public void onAccept(FilePipeRecord tempFile) {
+                var oldFile = file.toFile();
+                if (oldFile.exists()) {
+                    tempFile.iFile().renameTo(new File(oldFile.getAbsolutePath()));
+                } else {
+                    try {
+                        Files.write(
+                                file,
+                                Files.readAllBytes(Paths.get(tempFile.iFile().getAbsoluteFile().toString())),
+                                StandardOpenOption.APPEND
+                        );
+                    } catch (IOException e) {
+                        try {
+                            session.sendResponse(new Response(ResponseTypes.FILENAME_NOT_ALLOWED, "Couldn't append a file"));
+                        } catch (IOException ex) {
+                            throw new RuntimeException(ex);
+                        }
+                    }
                 }
 
                 try {
