@@ -9,6 +9,7 @@ import rchat.info.ctrlftp.core.responses.ResponseTypes;
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.net.Socket;
+import java.net.SocketAddress;
 import java.nio.charset.StandardCharsets;
 
 /**
@@ -25,6 +26,7 @@ public class Session implements Runnable {
         this.client = client;
         this.inputBuffer = new StringBuilder();
         this.dependencyManager = new DependencyManager(serverContext,
+                this,
                 DependencyLevel.SESSION,
                 serverContext.getDependencyManager());
     }
@@ -40,11 +42,15 @@ public class Session implements Runnable {
         try {
             var optionalMethod = MethodResolver.findMethod(this.serverContext, command.split(" ")[0]);
             if (optionalMethod.isEmpty()) {
-                return new Response(ResponseTypes.NOT_IMPLEMENTED, "Method not implemented");
+                return new Response(ResponseTypes.NOT_IMPLEMENTED, "Method " + command + " not implemented");
             }
             var targetMethod = optionalMethod.get();
 
-            DependencyManager local = new DependencyManager(serverContext, command, this.dependencyManager);
+            DependencyManager local = new DependencyManager(
+                    serverContext,
+                    this,
+                    command,
+                    this.dependencyManager);
             var methodParameters = local.getDependenciesForParameters(targetMethod.getParameters());
 
             return (Response) targetMethod.invoke(null, methodParameters.toArray());
@@ -63,10 +69,35 @@ public class Session implements Runnable {
         sendResponse(launchMethod(command));
     }
 
-    private void sendResponse(Response response) throws IOException {
+    public void sendResponse(Response response) throws IOException {
+        if (client.isClosed() || response == null) return;
+
         BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(client.getOutputStream()));
         writer.write(response.serialize().toString());
         writer.flush();
+    }
+
+    /**
+     * Disconnects from the current user
+     */
+    public void disconnect(Response reason) {
+        try {
+            sendResponse(reason);
+            client.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Gives user remote address
+     * @return user remote address
+     */
+    public SocketAddress getRemoteSocketAddress() {
+        if (client == null || !client.isConnected())
+            return null;
+
+        return client.getRemoteSocketAddress();
     }
 
     /**

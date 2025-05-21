@@ -21,7 +21,7 @@ public abstract class BaseDeserializer<DeserializeClass> extends AbstractDepende
      * @param command a raw command
      * @return deserialized data
      */
-    public abstract DeserializeClass deserialize(String command);
+    protected abstract DeserializeClass deserialize(String command);
 
     /**
      * A method that returns args from command
