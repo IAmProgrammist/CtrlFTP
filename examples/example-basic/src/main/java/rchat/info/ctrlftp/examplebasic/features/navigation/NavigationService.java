@@ -94,6 +94,6 @@ public class NavigationService {
             return new Response(ResponseTypes.FILENAME_NOT_ALLOWED, "Couldn't get folder contents");
         }
 
-        return null;
+        return new Response(ResponseTypes.ABOUT_TO_OPEN_CONNECTION, "Ready to send data");
     }
 }

@@ -54,7 +54,10 @@ public class NavigationDependency extends AbstractDependency {
             // TODO: implement LS for windows
         } else {
             try {
-                Process process = new ProcessBuilder("ls", "-la", "--time-style=+")
+                Process process = new ProcessBuilder()
+                        .command("bash", "-c",
+                                "export LC_ALL=en_US.UTF-8 ; " +
+                                        "ls -la")
                         .directory(path.toFile())
                         .start();
 
