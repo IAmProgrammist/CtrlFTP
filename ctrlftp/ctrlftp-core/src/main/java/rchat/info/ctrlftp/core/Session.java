@@ -9,6 +9,7 @@ import rchat.info.ctrlftp.core.responses.ResponseTypes;
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.net.Socket;
+import java.net.SocketAddress;
 import java.nio.charset.StandardCharsets;
 
 /**
@@ -41,7 +42,7 @@ public class Session implements Runnable {
         try {
             var optionalMethod = MethodResolver.findMethod(this.serverContext, command.split(" ")[0]);
             if (optionalMethod.isEmpty()) {
-                return new Response(ResponseTypes.NOT_IMPLEMENTED, "Method not implemented");
+                return new Response(ResponseTypes.NOT_IMPLEMENTED, "Method " + command + " not implemented");
             }
             var targetMethod = optionalMethod.get();
 
@@ -68,7 +69,7 @@ public class Session implements Runnable {
         sendResponse(launchMethod(command));
     }
 
-    private void sendResponse(Response response) throws IOException {
+    public void sendResponse(Response response) throws IOException {
         if (client.isClosed() || response == null) return;
 
         BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(client.getOutputStream()));
@@ -86,6 +87,17 @@ public class Session implements Runnable {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    /**
+     * Gives user remote address
+     * @return user remote address
+     */
+    public SocketAddress getRemoteSocketAddress() {
+        if (client == null || !client.isConnected())
+            return null;
+
+        return client.getRemoteSocketAddress();
     }
 
     /**
