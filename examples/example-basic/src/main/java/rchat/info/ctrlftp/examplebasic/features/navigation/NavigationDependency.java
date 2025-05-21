@@ -9,14 +9,10 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.nio.file.FileSystems;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Dependency(level = DependencyLevel.SESSION)
 public class NavigationDependency extends AbstractDependency {
@@ -30,12 +26,23 @@ public class NavigationDependency extends AbstractDependency {
         return currentFolder;
     }
 
-    public void changeWorkingDirectory(String path) {
+    public Path getPathRelativeToCWD(String path) {
+        Path resultPath;
         if (Paths.get(path).isAbsolute()) {
-            currentFolder = Paths.get(path).toAbsolutePath();
+            resultPath = Paths.get(path).toAbsolutePath();
         } else {
-            currentFolder = Paths.get(currentFolder.toAbsolutePath() + "/" + path).toAbsolutePath();
+            resultPath = Paths.get(currentFolder.toAbsolutePath() + "/" + path).toAbsolutePath();
         }
+
+        return resultPath;
+    }
+
+    public void changeWorkingDirectory(String path) {
+        this.currentFolder = getPathRelativeToCWD(path);
+    }
+
+    public File getFile(String path) {
+        return getPathRelativeToCWD(path).toFile();
     }
 
     public List<String> getFilesNames(Path path) throws IOException {
