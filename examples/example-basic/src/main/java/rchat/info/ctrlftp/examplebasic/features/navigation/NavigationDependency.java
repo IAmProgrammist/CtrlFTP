@@ -3,6 +3,8 @@ package rchat.info.ctrlftp.examplebasic.features.navigation;
 import rchat.info.ctrlftp.core.annotations.Dependency;
 import rchat.info.ctrlftp.core.dependencies.AbstractDependency;
 import rchat.info.ctrlftp.core.dependencies.DependencyLevel;
+import rchat.info.ctrlftp.core.responses.Response;
+import rchat.info.ctrlftp.core.responses.ResponseTypes;
 import rchat.info.ctrlftp.examplebasic.features.service.OSValidator;
 
 import java.io.BufferedReader;
@@ -17,6 +19,7 @@ import java.util.List;
 @Dependency(level = DependencyLevel.SESSION)
 public class NavigationDependency extends AbstractDependency {
     private Path currentFolder;
+    private Path renameFrom;
 
     public NavigationDependency() {
         currentFolder = Paths.get("").toAbsolutePath();
@@ -45,7 +48,7 @@ public class NavigationDependency extends AbstractDependency {
         return getPathRelativeToCWD(path).toFile();
     }
 
-    public List<String> getFilesNames(Path path) throws IOException {
+    private List<String> getFilesNames(Path path, boolean shortened) throws IOException {
         List<String> result = new ArrayList<>();
 //        try (Stream<Path> paths = Files.walk(path, 1)) {
 //            result = paths
@@ -64,7 +67,7 @@ public class NavigationDependency extends AbstractDependency {
                 Process process = new ProcessBuilder()
                         .command("bash", "-c",
                                 "export LC_ALL=en_US.UTF-8 ; " +
-                                        "ls -la")
+                                        (shortened ? "ls -1 -a" : "ls -la"))
                         .directory(path.toFile())
                         .start();
 
@@ -83,7 +86,41 @@ public class NavigationDependency extends AbstractDependency {
         return result;
     }
 
+
+
+    public List<String> getFilesNames(Path path) throws IOException {
+        return getFilesNames(path, false);
+    }
+
+    public List<String> getFilesNamesShort(Path path) throws IOException {
+        return getFilesNames(path, true);
+    }
+
     public List<String> getFilesNames() throws IOException {
         return getFilesNames(this.currentFolder);
+    }
+
+    public List<String> getFilesNamesShort() throws IOException {
+        return getFilesNamesShort(this.currentFolder);
+    }
+
+    public void setRenameFrom(String path) {
+        this.renameFrom = getPathRelativeToCWD(path);
+    }
+
+    public Response renameTo(String newPath) {
+        if (this.renameFrom == null) {
+            return new Response(ResponseTypes.FILENAME_NOT_ALLOWED, "You should setup rename from first");
+        }
+
+        var renameToPath = getPathRelativeToCWD(newPath);
+
+        var succeeded = this.renameFrom.toFile().renameTo(renameToPath.toFile());
+
+        if (!succeeded) {
+            return new Response(ResponseTypes.FILENAME_NOT_ALLOWED, "Unabled to rename");
+        }
+
+        return new Response(ResponseTypes.FILE_ACTION_OK, "File renamed succesully");
     }
 }
