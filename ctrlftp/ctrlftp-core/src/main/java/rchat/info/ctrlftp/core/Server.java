@@ -33,7 +33,7 @@ public class Server {
     }
 
     public void mainLoop() throws IOException {
-        serverSocket = new ServerSocket(10021);
+        serverSocket = new ServerSocket(21);
         while (!serverSocket.isClosed()) {
             Socket client = serverSocket.accept();
             sessions.submit(new Session(this, client));
