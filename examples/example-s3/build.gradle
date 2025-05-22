@@ -17,5 +17,6 @@ dependencies {
     implementation 'rchat.info:ctrlftp-dependencies:1.0'
     implementation 'org.hibernate:hibernate-core:7.0.0.Final'
     implementation 'org.glassfish.jaxb:jaxb-runtime:3.0.0'
-    implementation 'org.hibernate:hibernate-entitymanager:5.6.15.Final'
+    implementation 'org.springframework.data:spring-data-jpa:3.5.0'
+    implementation 'org.postgresql:postgresql:42.1.4'
 }

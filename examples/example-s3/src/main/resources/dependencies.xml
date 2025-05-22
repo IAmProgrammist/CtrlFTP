@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<config>
+    <services>
+        <service>rchat.info.ctrlftp.examples3.features.authentication.AuthenticationService</service>
+    </services>
+    <dependencies>
+        <dependency>rchat.info.ctrlftp.dependencies.deserializer.SingleStringDeserializer</dependency>
+        <dependency>rchat.info.ctrlftp.examples3.features.authentication.AuthenticationDependency</dependency>
+        <dependency>rchat.info.ctrlftp.examples3.features.database.DatabaseDependency</dependency>
+    </dependencies>
+</config>

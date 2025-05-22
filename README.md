@@ -245,3 +245,4 @@ may be splitted in headers.
 You can find examples at `examples` folder. 
 
 * `example-basic` - contains a very (VERY) basic FTP server to look files on UNIX systems
+* `example-s3` - a basic S3 that provides files over FTP protocol
