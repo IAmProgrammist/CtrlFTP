@@ -96,4 +96,54 @@ public class NavigationService {
 
         return new Response(ResponseTypes.ABOUT_TO_OPEN_CONNECTION, "Ready to send data");
     }
+
+    @Command(name = "NLST")
+    public static Response getListShort(BasicAuthenticationDependency auth,
+                                   FileAcceptTransferDependency transfer,
+                                   NavigationDependency navigationDependency,
+                                   SingleStringDeserializer args,
+                                   Session session) {
+        var authResult = auth.authenticate();
+        if (!authResult.isAuthenticated())
+            return authResult.cause();
+
+        try {
+            List<String> filesList;
+            if (args.getDeserializeData().arg().isEmpty()) {
+                filesList = navigationDependency.getFilesNamesShort();
+            } else {
+                filesList = navigationDependency.getFilesNamesShort(Paths.get(args.getDeserializeData().arg()));
+            }
+
+            String data = String.join("\r\n", filesList);
+            transfer.send(new FilePipeRecord(null, data), new TransferEvent() {
+                @Override
+                public void onTransferred() {
+                    try {
+                        session.sendResponse(
+                                new Response(ResponseTypes.COMMAND_OK, "A file sent succesfully")
+                        );
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+
+                @Override
+                public void onError(Exception e) {
+                    e.printStackTrace();
+                    try {
+                        session.sendResponse(
+                                new Response(ResponseTypes.TRANSFER_ABORTED, "Failed to send a file")
+                        );
+                    } catch (IOException ex) {
+                        throw new RuntimeException(ex);
+                    }
+                }
+            });
+        } catch (IOException e) {
+            return new Response(ResponseTypes.FILENAME_NOT_ALLOWED, "Couldn't get folder contents");
+        }
+
+        return new Response(ResponseTypes.ABOUT_TO_OPEN_CONNECTION, "Ready to send data");
+    }
 }
