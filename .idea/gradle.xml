@@ -32,6 +32,11 @@
                   <project path="$PROJECT_DIR$/examples/example-basic" />
                 </projects>
               </build>
+              <build path="$PROJECT_DIR$/examples/example-dbauth" name="example-dbauth">
+                <projects>
+                  <project path="$PROJECT_DIR$/examples/example-dbauth" />
+                </projects>
+              </build>
             </builds>
           </compositeBuild>
         </compositeConfiguration>
@@ -44,6 +49,7 @@
             <option value="$PROJECT_DIR$/ctrlftp/ctrlftp-dependencies" />
             <option value="$PROJECT_DIR$/examples" />
             <option value="$PROJECT_DIR$/examples/example-basic" />
+            <option value="$PROJECT_DIR$/examples/example-dbauth" />
           </set>
         </option>
       </GradleProjectSettings>

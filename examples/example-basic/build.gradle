@@ -2,8 +2,10 @@ plugins {
     id 'application'
 }
 
-application {
-    mainClass = 'rchat.info.ctrlftp.examplebasic.Main'
+jar {
+    manifest {
+        attributes 'Main-Class': 'rchat.info.ctrlftp.examplebasic.Main'
+    }
 }
 
 dependencies {
