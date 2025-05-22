@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<config>
+    <services>
+        <service>rchat.info.ctrlftp.dbauth.controllers.AuthenticationController</service>
+        <service>rchat.info.ctrlftp.dbauth.controllers.FileController</service>
+        <service>rchat.info.ctrlftp.dbauth.controllers.NavigationController</service>
+        <service>rchat.info.ctrlftp.dbauth.controllers.SystemController</service>
+        <service>rchat.info.ctrlftp.dbauth.controllers.TransferController</service>
+    </services>
+    <dependencies>
+        <dependency>rchat.info.ctrlftp.dependencies.deserializer.SingleStringDeserializer</dependency>
+        <dependency>rchat.info.ctrlftp.dbauth.dependencies.AuthenticationDependency</dependency>
+        <dependency>rchat.info.ctrlftp.dbauth.dependencies.DatabaseDependency</dependency>
+        <dependency>rchat.info.ctrlftp.dbauth.dependencies.VirtualFileSystemDependency</dependency>
+    </dependencies>
+</config>

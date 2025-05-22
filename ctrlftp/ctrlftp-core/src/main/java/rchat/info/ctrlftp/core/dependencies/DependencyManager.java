@@ -192,7 +192,7 @@ public class DependencyManager {
                     }
                 } else {
                     throw new RuntimeException("A dependency should be inherited from a base class AbstractDependency and " +
-                            "contain @Dependency annotation");
+                            "contain @Dependency annotation " + dependencyClass);
                 }
             }
         }
