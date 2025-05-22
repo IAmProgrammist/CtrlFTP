@@ -1,4 +1,4 @@
-package rchat.info.ctrlftp.examples3;
+package rchat.info.ctrlftp.dbauth;
 
 import rchat.info.ctrlftp.core.Server;
 

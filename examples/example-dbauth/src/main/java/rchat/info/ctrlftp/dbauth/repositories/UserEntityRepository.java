@@ -1,6 +1,8 @@
-package rchat.info.ctrlftp.examples3.features.authentication;
+package rchat.info.ctrlftp.dbauth.repositories;
 
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityTransaction;
+import rchat.info.ctrlftp.dbauth.entities.UserEntity;
 
 public class UserEntityRepository {
     private final EntityManager database;
@@ -18,20 +20,23 @@ public class UserEntityRepository {
                         """, UserEntity.class)
                 .setParameter("login", login)
                 .setParameter("password", hashedPassword)
-                .getSingleResult();
+                .getSingleResultOrNull();
     }
 
     public UserEntity findUserEntityByLogin(String login) {
         return database.createQuery("""
                         select user
                         from UserEntity user
-                        where user.login = :login and
+                        where user.login = :login
                         """, UserEntity.class)
                 .setParameter("login", login)
-                .getSingleResult();
+                .getSingleResultOrNull();
     }
 
     public void addUser(UserEntity newUser) {
+        EntityTransaction entityTransaction = this.database.getTransaction();
+        entityTransaction.begin();
         this.database.persist(newUser);
+        entityTransaction.commit();
     }
 }

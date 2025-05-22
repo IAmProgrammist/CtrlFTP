@@ -1,2 +1,2 @@
 includeBuild 'example-basic'
-includeBuild 'example-s3'
+includeBuild 'example-dbauth'

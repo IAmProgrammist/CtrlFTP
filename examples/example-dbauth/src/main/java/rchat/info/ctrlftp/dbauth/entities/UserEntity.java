@@ -1,8 +1,9 @@
-package rchat.info.ctrlftp.examples3.features.authentication;
+package rchat.info.ctrlftp.dbauth.entities;
 
 import jakarta.persistence.*;
 
 @Entity
+@Table
 public class UserEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

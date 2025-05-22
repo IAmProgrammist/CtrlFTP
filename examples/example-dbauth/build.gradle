@@ -18,5 +18,5 @@ dependencies {
     implementation 'org.hibernate:hibernate-core:7.0.0.Final'
     implementation 'org.glassfish.jaxb:jaxb-runtime:3.0.0'
     implementation 'org.springframework.data:spring-data-jpa:3.5.0'
-    implementation 'org.postgresql:postgresql:42.1.4'
+    implementation 'org.postgresql:postgresql:42.7.2'
 }

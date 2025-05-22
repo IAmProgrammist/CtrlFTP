@@ -1,10 +1,12 @@
-package rchat.info.ctrlftp.examples3.features.authentication;
+package rchat.info.ctrlftp.dbauth.dependencies;
 
 import rchat.info.ctrlftp.core.responses.Response;
 import rchat.info.ctrlftp.core.responses.ResponseTypes;
+import rchat.info.ctrlftp.dbauth.dependencies.DatabaseDependency;
+import rchat.info.ctrlftp.dbauth.entities.UserEntity;
+import rchat.info.ctrlftp.dbauth.repositories.UserEntityRepository;
 import rchat.info.ctrlftp.dependencies.authentication.AuthenticationResult;
 import rchat.info.ctrlftp.dependencies.authentication.BaseAuthenticationDependency;
-import rchat.info.ctrlftp.examples3.features.database.DatabaseDependency;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -96,5 +98,11 @@ public class AuthenticationDependency extends BaseAuthenticationDependency<UserE
         this.found = null;
         this.login = null;
         this.hashedPassword = null;
+    }
+
+    public Long getUserId() {
+        if (this.found == null) return null;
+
+        return this.found.getId();
     }
 }
