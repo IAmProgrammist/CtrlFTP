@@ -1,13 +1,49 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="GradleMigrationSettings" migrationVersion="1" />
   <component name="GradleSettings">
     <option name="linkedExternalProjectsSettings">
       <GradleProjectSettings>
+        <compositeConfiguration>
+          <compositeBuild compositeDefinitionSource="SCRIPT">
+            <builds>
+              <build path="$PROJECT_DIR$/ctrlftp" name="ctrlftp">
+                <projects>
+                  <project path="$PROJECT_DIR$/ctrlftp" />
+                </projects>
+              </build>
+              <build path="$PROJECT_DIR$/ctrlftp/ctrlftp-core" name="ctrlftp-core">
+                <projects>
+                  <project path="$PROJECT_DIR$/ctrlftp/ctrlftp-core" />
+                </projects>
+              </build>
+              <build path="$PROJECT_DIR$/ctrlftp/ctrlftp-dependencies" name="ctrlftp-dependencies">
+                <projects>
+                  <project path="$PROJECT_DIR$/ctrlftp/ctrlftp-dependencies" />
+                </projects>
+              </build>
+              <build path="$PROJECT_DIR$/examples" name="examples">
+                <projects>
+                  <project path="$PROJECT_DIR$/examples" />
+                </projects>
+              </build>
+              <build path="$PROJECT_DIR$/examples/example-basic" name="example-basic">
+                <projects>
+                  <project path="$PROJECT_DIR$/examples/example-basic" />
+                </projects>
+              </build>
+            </builds>
+          </compositeBuild>
+        </compositeConfiguration>
         <option name="externalProjectPath" value="$PROJECT_DIR$" />
-        <option name="gradleJvm" value="#JAVA_HOME" />
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$" />
+            <option value="$PROJECT_DIR$/ctrlftp" />
+            <option value="$PROJECT_DIR$/ctrlftp/ctrlftp-core" />
+            <option value="$PROJECT_DIR$/ctrlftp/ctrlftp-dependencies" />
+            <option value="$PROJECT_DIR$/examples" />
+            <option value="$PROJECT_DIR$/examples/example-basic" />
           </set>
         </option>
       </GradleProjectSettings>
