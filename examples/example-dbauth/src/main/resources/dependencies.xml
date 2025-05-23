@@ -2,15 +2,18 @@
 <config>
     <services>
         <service>rchat.info.ctrlftp.dbauth.controllers.AuthenticationController</service>
-        <service>rchat.info.ctrlftp.dbauth.controllers.FileController</service>
+        <service>rchat.info.ctrlftp.dbauth.controllers.FileAcceptTransferController</service>
         <service>rchat.info.ctrlftp.dbauth.controllers.NavigationController</service>
-        <service>rchat.info.ctrlftp.dbauth.controllers.SystemController</service>
-        <service>rchat.info.ctrlftp.dbauth.controllers.TransferController</service>
+        <service>rchat.info.ctrlftp.dbauth.controllers.ServiceController</service>
     </services>
     <dependencies>
         <dependency>rchat.info.ctrlftp.dependencies.deserializer.SingleStringDeserializer</dependency>
         <dependency>rchat.info.ctrlftp.dbauth.dependencies.AuthenticationDependency</dependency>
         <dependency>rchat.info.ctrlftp.dbauth.dependencies.DatabaseDependency</dependency>
-        <dependency>rchat.info.ctrlftp.dbauth.dependencies.VirtualFileSystemDependency</dependency>
+        <dependency>rchat.info.ctrlftp.dbauth.dependencies.FileAcceptTransferDependency</dependency>
+        <dependency>rchat.info.ctrlftp.dbauth.dependencies.FilePipeDependency</dependency>
+        <dependency>rchat.info.ctrlftp.dbauth.dependencies.NavigationDependency</dependency>
+        <dependency>rchat.info.ctrlftp.dbauth.dependencies.ServiceDependency</dependency>
+        <dependency>rchat.info.ctrlftp.dbauth.dependencies.deserializers.DataPortDeserializer</dependency>
     </dependencies>
 </config>
