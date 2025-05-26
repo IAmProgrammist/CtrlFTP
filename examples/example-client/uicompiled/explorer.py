@@ -31,6 +31,7 @@ class Ui_Dialog(object):
         self.horizontalLayout.setObjectName(u"horizontalLayout")
         self.buttonDownload = QPushButton(Dialog)
         self.buttonDownload.setObjectName(u"buttonDownload")
+        self.buttonDownload.setStyleSheet(u"background-color: rgb(61, 56, 70);")
         icon = QIcon()
         icon.addFile(u":/assets/download.svg", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
         self.buttonDownload.setIcon(icon)
@@ -40,6 +41,7 @@ class Ui_Dialog(object):
 
         self.buttonUpload = QPushButton(Dialog)
         self.buttonUpload.setObjectName(u"buttonUpload")
+        self.buttonUpload.setStyleSheet(u"background-color: rgb(61, 56, 70);")
         icon1 = QIcon()
         icon1.addFile(u":/assets/upload.svg", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
         self.buttonUpload.setIcon(icon1)
@@ -49,6 +51,7 @@ class Ui_Dialog(object):
 
         self.buttonCreateDir = QPushButton(Dialog)
         self.buttonCreateDir.setObjectName(u"buttonCreateDir")
+        self.buttonCreateDir.setStyleSheet(u"background-color: rgb(61, 56, 70);")
         icon2 = QIcon()
         icon2.addFile(u":/assets/create.svg", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
         self.buttonCreateDir.setIcon(icon2)
@@ -58,6 +61,7 @@ class Ui_Dialog(object):
 
         self.buttonRemove = QPushButton(Dialog)
         self.buttonRemove.setObjectName(u"buttonRemove")
+        self.buttonRemove.setStyleSheet(u"background-color: rgb(61, 56, 70);")
         icon3 = QIcon()
         icon3.addFile(u":/assets/delete.svg", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
         self.buttonRemove.setIcon(icon3)
@@ -67,6 +71,7 @@ class Ui_Dialog(object):
 
         self.buttonRename = QPushButton(Dialog)
         self.buttonRename.setObjectName(u"buttonRename")
+        self.buttonRename.setStyleSheet(u"background-color: rgb(61, 56, 70);")
         icon4 = QIcon()
         icon4.addFile(u":/assets/rename.svg", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
         self.buttonRename.setIcon(icon4)
