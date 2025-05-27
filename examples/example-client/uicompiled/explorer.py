@@ -16,8 +16,8 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
 from PySide6.QtWidgets import (QApplication, QDialog, QHBoxLayout, QHeaderView,
-    QPushButton, QSizePolicy, QSpacerItem, QTableWidget,
-    QTableWidgetItem, QVBoxLayout, QWidget)
+    QLineEdit, QPushButton, QSizePolicy, QSpacerItem,
+    QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget)
 import resources_rc
 
 class Ui_Dialog(object):
@@ -85,6 +85,11 @@ class Ui_Dialog(object):
 
 
         self.verticalLayout.addLayout(self.horizontalLayout)
+
+        self.inputCurrentDir = QLineEdit(Dialog)
+        self.inputCurrentDir.setObjectName(u"inputCurrentDir")
+
+        self.verticalLayout.addWidget(self.inputCurrentDir)
 
         self.contents = QTableWidget(Dialog)
         if (self.contents.columnCount() < 3):

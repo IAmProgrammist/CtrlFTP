@@ -74,15 +74,30 @@ class Ui_Dialog(object):
 
         self.verticalLayout_3.addWidget(self.inputIsPassive)
 
+        self.dataConnectionInputs = QVBoxLayout()
+        self.dataConnectionInputs.setObjectName(u"dataConnectionInputs")
+        self.label_9 = QLabel(Dialog)
+        self.label_9.setObjectName(u"label_9")
+
+        self.dataConnectionInputs.addWidget(self.label_9)
+
+        self.inputDataAddress = QLineEdit(Dialog)
+        self.inputDataAddress.setObjectName(u"inputDataAddress")
+
+        self.dataConnectionInputs.addWidget(self.inputDataAddress)
+
         self.label_6 = QLabel(Dialog)
         self.label_6.setObjectName(u"label_6")
 
-        self.verticalLayout_3.addWidget(self.label_6)
+        self.dataConnectionInputs.addWidget(self.label_6)
 
         self.inputDataPort = QLineEdit(Dialog)
         self.inputDataPort.setObjectName(u"inputDataPort")
 
-        self.verticalLayout_3.addWidget(self.inputDataPort)
+        self.dataConnectionInputs.addWidget(self.inputDataPort)
+
+
+        self.verticalLayout_3.addLayout(self.dataConnectionInputs)
 
 
         self.verticalLayout_2.addLayout(self.verticalLayout_3)
@@ -144,6 +159,7 @@ class Ui_Dialog(object):
         self.label_3.setText(QCoreApplication.translate("Dialog", u"\u041f\u043e\u0440\u0442", None))
         self.label_4.setText(QCoreApplication.translate("Dialog", u"\u0414\u0430\u0442\u0430-\u043f\u043e\u0434\u043a\u043b\u044e\u0447\u0435\u043d\u0438\u0435", None))
         self.inputIsPassive.setText(QCoreApplication.translate("Dialog", u"\u041f\u0430\u0441\u0441\u0438\u0432\u043d\u044b\u0439 \u0440\u0435\u0436\u0438\u043c", None))
+        self.label_9.setText(QCoreApplication.translate("Dialog", u"\u0418\u0441\u043f\u043e\u043b\u044c\u0437\u0443\u0435\u043c\u044b\u0439 \u0430\u0434\u0440\u0435\u0441", None))
         self.label_6.setText(QCoreApplication.translate("Dialog", u"\u0418\u0441\u043f\u043e\u043b\u044c\u0437\u0443\u0435\u043c\u044b\u0439 \u043f\u043e\u0440\u0442", None))
         self.label_5.setText(QCoreApplication.translate("Dialog", u"\u0414\u0430\u043d\u043d\u044b\u0435 \u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u044f", None))
         self.label_7.setText(QCoreApplication.translate("Dialog", u"\u041b\u043e\u0433\u0438\u043d", None))
