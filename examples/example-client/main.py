@@ -1,7 +1,5 @@
 import sys
 from ftplib import FTP
-from typing import Optional
-import resources
 
 from PySide6.QtWidgets import QApplication
 
@@ -20,39 +18,44 @@ def get_connection_options():
     return connect_dialog.get_options() if return_code == 1 else None
 
 def prepare_connection(connection_options) -> FTP:
-    wait_dialog = LoaderDialog()
+    def inner_ftp_execute():
+        ftp = FTP()
+        ftp.connect(host=connection_options['server_address'], port=int(connection_options['server_port']))
+        if not ftp.login(user=connection_options['user_login'], passwd=connection_options['user_password']).startswith(
+                "2"):
+            wait_dialog.close()
+            raise ConnectionError("Некорректный логин, пароль или адрес")
+
+        if connection_options["is_passive"]:
+            ftp.set_pasv(True)
+        else:
+            ftp.sendport(connection_options["user_address"], int(connection_options["user_port"]))
+
+        if not ftp.lastresp.startswith("2"):
+            wait_dialog.close()
+            raise ConnectionError("Некорректный логин, пароль или адрес")
+
+        return ftp
+
+    wait_dialog = LoaderDialog(inner_ftp_execute)
     wait_dialog.show()
 
-    ftp = FTP(f"{connection_options['server_address']}:{connection_options['server_port']}",
-              connection_options['user_login'], connection_options['user_password'])
-    if not ftp.login().startswith("2"):
-        raise ConnectionError("Некорректный логин, пароль или адрес")
-
-    if connection_options["is_passive"]:
-        ftp.set_pasv(True)
-    else:
-        ftp.sendport(connection_options["user_address"], int(connection_options["use_port"]))
-
-    if not ftp.lastresp.startswith("2"):
-        raise ConnectionError("Некорректный логин, пароль или адрес")
-
-    wait_dialog.close()
-
-    return ftp
+    return wait_dialog.get_result()
 
 def run_program():
     try:
         connection_options = get_connection_options()
 
-        if connection_options == None:
+        if connection_options is None:
             return
 
         ftp = prepare_connection(connection_options)
 
         explorer_dialog = ExplorerDialog(ftp)
         explorer_dialog.exec()
-    except:
-        show_error("Некорректный логин, пароль или адрес")
+    except Exception as e:
+        show_error(str(e))
+        raise e
 
 
 if __name__ == "__main__":
