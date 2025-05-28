@@ -246,7 +246,7 @@ public class ServiceService {
 
         navigation.setRenameFrom(args.getDeserializeData().arg());
 
-        return new Response(ResponseTypes.COMMAND_OK, "Ready to send data");
+        return new Response(ResponseTypes.FILE_ACTION_PENDING_INFO, "Send rename to info");
     }
 
     @Command(name = "RNTO")

@@ -1,0 +1,9 @@
+<!DOCTYPE RCC><RCC version="1.0">
+<qresource>
+    <file>assets/create.svg</file>
+    <file>assets/delete.svg</file>
+    <file>assets/download.svg</file>
+    <file>assets/rename.svg</file>
+    <file>assets/upload.svg</file>
+</qresource>
+</RCC>
