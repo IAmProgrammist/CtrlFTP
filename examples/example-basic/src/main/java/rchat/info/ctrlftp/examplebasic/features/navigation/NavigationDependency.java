@@ -41,7 +41,10 @@ public class NavigationDependency extends AbstractDependency {
     }
 
     public void changeWorkingDirectory(String path) {
-        this.currentFolder = getPathRelativeToCWD(path);
+        var newFolder = getPathRelativeToCWD(path);
+        if (!newFolder.toFile().isDirectory() || !newFolder.toFile().exists())
+            throw new RuntimeException("Folder doesn't exists");
+        this.currentFolder = newFolder;
     }
 
     public File getFile(String path) {

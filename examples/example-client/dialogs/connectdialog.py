@@ -1,3 +1,4 @@
+from PySide6.QtGui import QIntValidator
 from PySide6.QtWidgets import QDialog
 
 from uicompiled.connect import Ui_Dialog as UiConnect
@@ -9,6 +10,8 @@ class ConnectDialog(QDialog):
         self.ui.setupUi(self)
         self.ui.buttonConnect.clicked.connect(self.selected)
         self.ui.inputIsPassive.checkStateChanged.connect(self.is_passive_selected)
+        self.ui.inputServerPort.setValidator(QIntValidator(0, 65536))
+        self.ui.inputDataPort.setValidator(QIntValidator(0, 65536))
         self.is_passive_selected()
 
     def get_options(self):

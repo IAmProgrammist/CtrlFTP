@@ -8,6 +8,7 @@ from PySide6.QtWidgets import QDialog, QTableWidgetItem, QAbstractItemView, QFil
 from dialogs.createdialog import CreateDialog
 from dialogs.errordialog import ErrorDialog
 from dialogs.loaderdialog import LoaderDialog
+from dialogs.renamedialog import RenameDialog
 from uicompiled.explorer import Ui_Dialog as UiExplorer
 
 
@@ -25,9 +26,12 @@ class ExplorerDialog(QDialog):
         self.ui.inputCurrentDir.returnPressed.connect(self.change_directory)
         self.ui.contents.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         self.ui.contents.cellDoubleClicked.connect(self.cell_double_clicked)
+        self.ui.contents.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
         self.ui.buttonDownload.clicked.connect(self.button_download_clicked)
-        self.ui.buttonUpload.clicked.connect(self.upload_file)
-        self.ui.buttonCreateDir.clicked.connect(self.mkdir)
+        self.ui.buttonUpload.clicked.connect(self.button_upload_clicked)
+        self.ui.buttonCreateDir.clicked.connect(self.button_folder_created_clicked)
+        self.ui.buttonRemove.clicked.connect(self.button_delete_clicked)
+        self.ui.buttonRename.clicked.connect(self.button_rename_clicked)
         self.__is_folder = []
         self.update_list()
 
@@ -48,13 +52,13 @@ class ExplorerDialog(QDialog):
                 current_index += 1
                 return
 
-            line_splitted = re.split(r'[ ]+', line)
+            line_split = re.split(r'[ ]+', line)
             self.ui.contents.insertRow(self.ui.contents.rowCount())
-            self.ui.contents.setItem(current_index, 0, QTableWidgetItem(line_splitted[-1]))
+            self.ui.contents.setItem(current_index, 0, QTableWidgetItem(line_split[-1]))
             self.ui.contents.setItem(current_index, 1,
-                                     QTableWidgetItem("" if line_splitted[0].startswith("d") else line_splitted[4]))
-            self.ui.contents.setItem(current_index, 2, QTableWidgetItem(" ".join(line_splitted[5:8])))
-            self.__is_folder.append(line_splitted[0].startswith("d"))
+                                     QTableWidgetItem("" if line_split[0].startswith("d") else line_split[4]))
+            self.ui.contents.setItem(current_index, 2, QTableWidgetItem(" ".join(line_split[5:8])))
+            self.__is_folder.append(line_split[0].startswith("d"))
             current_index += 1
 
         self.__ftp.retrlines("LIST", line_extractor)
@@ -65,7 +69,9 @@ class ExplorerDialog(QDialog):
 
         self.ui.inputCurrentDir.setText(abspath(self.ui.inputCurrentDir.text()))
 
-        if not self.__ftp.cwd(self.ui.inputCurrentDir.text()).startswith("2"):
+        try:
+            self.__ftp.cwd(self.ui.inputCurrentDir.text())
+        except Exception as e:
             show_error(f"Невозможно переключиться на директорию '{self.ui.inputCurrentDir.text()}'")
 
         self.update_list()
@@ -90,6 +96,10 @@ class ExplorerDialog(QDialog):
             return
 
         selected_item = selected_items[0]
+        if self.__is_folder[selected_item.row()]:
+            show_error("Невозможно сохранить папку, выберите файл")
+            return
+
         self.save_file(self.ui.contents.item(selected_item.row(), 0).text())
 
     def save_file(self, file_name):
@@ -106,27 +116,30 @@ class ExplorerDialog(QDialog):
             with open(save_file_name, "wb") as fp:
                 self.__ftp.retrbinary(f"RETR {file_name}", fp.write)
 
+        loader_dialog = LoaderDialog(inner_func)
         try:
-            loader_dialog = LoaderDialog(inner_func)
             loader_dialog.show()
             loader_dialog.get_result()
         except Exception as e:
             show_error(str(e))
             loader_dialog.close()
 
-    def upload_file(self):
+    def button_upload_clicked(self):
         (upload_file_path, _) = QFileDialog.getOpenFileName(self,
                                                             "Загрузить файл",
                                                             os.getcwd(),
-                                                            "Все файлы (*)"
+                                                            "*.*"
                                                             )
+
+        if upload_file_path == "":
+            return
 
         def inner_func():
             with open(upload_file_path, "rb") as fp:
                 self.__ftp.storbinary(f"STOU {upload_file_path.split('/')[-1]}", fp)
 
+        loader_dialog = LoaderDialog(inner_func)
         try:
-            loader_dialog = LoaderDialog(inner_func)
             loader_dialog.show()
             loader_dialog.get_result()
         except Exception as e:
@@ -135,11 +148,58 @@ class ExplorerDialog(QDialog):
 
         self.update_list()
 
-    def mkdir(self):
+    def button_folder_created_clicked(self):
         create_dir = CreateDialog(self)
         return_code = create_dir.exec()
         if return_code == QDialog.DialogCode.Rejected:
             return
 
         self.__ftp.mkd(create_dir.get_name())
+        if not self.__ftp.lastresp.startswith("2"):
+            show_error(f"Не удалось создать папку")
+
+        self.update_list()
+
+    def button_delete_clicked(self):
+        selected_items = self.ui.contents.selectedItems()
+        if len(selected_items) == 0:
+            show_error("Выберите файл или папку для удаления в таблице")
+            return
+
+        selected_item = selected_items[0]
+        if self.__is_folder[selected_item.row()]:
+            self.delete_folder(self.ui.contents.item(selected_item.row(), 0).text())
+        else:
+            self.delete_file(self.ui.contents.item(selected_item.row(), 0).text())
+
+    def delete_file(self, file_name: str):
+        self.__ftp.delete(file_name)
+        if not self.__ftp.lastresp.startswith("2"):
+            show_error(f"Не удалось удалить файл {self.__ftp.lastresp}")
+
+        self.update_list()
+
+    def delete_folder(self, folder_name: str):
+        self.__ftp.rmd(folder_name)
+        if not self.__ftp.lastresp.startswith("2"):
+            show_error(f"Не удалось удалить папку {self.__ftp.lastresp}")
+
+        self.update_list()
+
+    def button_rename_clicked(self):
+        selected_items = self.ui.contents.selectedItems()
+        if len(selected_items) == 0:
+            show_error("Выберите файл или папку для переименования в таблице")
+            return
+
+        selected_item = selected_items[0]
+
+        rename_dialog = RenameDialog(self.ui.contents.item(selected_item.row(), 0).text(), self)
+        rename_dialog.exec()
+
+        self.__ftp.rename(self.ui.contents.item(selected_item.row(), 0).text(),
+                                     rename_dialog.get_name())
+        if not self.__ftp.lastresp.startswith("2"):
+            show_error(f"Не удалось переименовать {self.ui.contents.item(selected_item.row(), 0)} в {rename_dialog.get_name()}")
+
         self.update_list()

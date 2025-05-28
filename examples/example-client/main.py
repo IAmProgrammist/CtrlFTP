@@ -44,15 +44,16 @@ def prepare_connection(connection_options) -> FTP:
 
 def run_program():
     try:
-        connection_options = get_connection_options()
+        while True:
+            connection_options = get_connection_options()
 
-        if connection_options is None:
-            return
+            if connection_options is None:
+                break
 
-        ftp = prepare_connection(connection_options)
+            ftp = prepare_connection(connection_options)
 
-        explorer_dialog = ExplorerDialog(ftp)
-        explorer_dialog.exec()
+            explorer_dialog = ExplorerDialog(ftp)
+            explorer_dialog.exec()
     except Exception as e:
         show_error(str(e))
         raise e

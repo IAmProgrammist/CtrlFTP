@@ -183,3 +183,8 @@ fabric.properties
 
 # idea folder, uncomment if you don't need it
 .idea
+
+uicompiled/*
+!uicompiled/__init__.py
+
+resources_rc.py
